@@ -1,22 +1,29 @@
 <?php
 class Database
 {
-    private $host = "localhost";
-    private $db_name = "hotel";
-    private $username = "root";
-    private $password = "";
-    public $conn;
+    private $host;
+    private $db_name;
+    private $username;
+    private $password;
+    private $conn;
+
+    public function __construct($host, $db_name, $username, $password)
+    {
+        $this->host = $host;
+        $this->db_name = $db_name;
+        $this->username = $username;
+        $this->password = $password;
+    }
 
     public function getConnection()
     {
-        $this->conn = null;
         try {
             $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name, $this->username, $this->password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
             $this->conn->exec("set names utf8");
         } catch (PDOException $exception) {
-            echo "Connection error: " . $exception->getMessage();
+            throw new Exception("Error connecting to the database: " . $exception->getMessage());
         }
         return $this->conn;
     }
@@ -27,7 +34,7 @@ class Database
             $stmt = $this->conn->prepare($sql);
             $stmt->execute($data);
         } catch (PDOException $exception) {
-            echo "Query error: " . $exception->getMessage();
+            throw new Exception("Error running query: " . $exception->getMessage());
         }
         return $stmt;
     }
@@ -37,7 +44,7 @@ class Database
         return $stmt->rowCount();
     }
 
-    public function closeConnection()
+    public function __destruct()
     {
         $this->conn = null;
     }
